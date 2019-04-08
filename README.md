@@ -167,7 +167,7 @@ The hico call above will produce such data:
              [:tasks1 ["clear_user_tample" "insert_users"]])
 ```
 
-'ordered-map' here is just a implementation of [ordered-map](https://github.com/flatland/ordered).
+`ordered-map` here is just a implementation of [ordered-map](https://github.com/flatland/ordered).
 You can use it as an ordinary hash-map.
 
 ## And, that's all?
@@ -176,7 +176,7 @@ Yes. That is.
 
 ## But... Isn't something missing here? How can I run my queries?
 
-It's easy. Remember, for now it's just something like template engine for SQL queries. So to, run our
+It's easy. Remember, for now it's just something like template engine for SQL queries. So, to run our
 queries in more practical way, let's rewrite some queries using `:<name>` notation that will be using
 with HugSQL.
 
