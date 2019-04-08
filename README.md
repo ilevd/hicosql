@@ -2,6 +2,13 @@
 
 A Clojure library designed to manage you big SQL queries.
 
+## Installation
+
+### Leiningen
+
+[![Clojars Project](https://img.shields.io/clojars/v/hicosql.svg)](https://clojars.org/hicosql)
+
+
 ## Usage
 
 ```sql
