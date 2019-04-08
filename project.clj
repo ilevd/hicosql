@@ -1,4 +1,4 @@
-(defproject hicosql "0.1.0-SNAPSHOT"
+(defproject hicosql "0.1.1"
   :description "Highly Configurable SQL"
   :url "https://github.com/ilevd/hicosql"
   :license {:name "Eclipse Public License"
