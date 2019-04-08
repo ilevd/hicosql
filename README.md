@@ -16,7 +16,7 @@ A Clojure library designed to manage you big SQL queries based on [YAML](https:/
 5. Designed to work with big complex SQL queries
 6. SQL as configs
 
-### Why do we need it?
+### Why do I need it?
 
 There are a lot of different SQL libraries. HugSQL, HoneySQL, YeSQL...
 
@@ -67,7 +67,7 @@ old_and_young_users: |
 mid_age_users: |
   SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))
 
-#-- It was the first main feature on HiCoSQL - substitution for &<name>. 
+#-- It was the first main feature of HiCoSQL - substitution for &<name>. 
 #-- Now let's use the second: templates
 #-- Here we define our first template, which use @<name> - the place there the engine inserts
 #-- provided value
@@ -75,7 +75,7 @@ users_templ: |
   SELECT @fields FROM users
 
 #-- So let's use our template
-#-- The <name>:<template_name> is a special short syntax. It means that users1 is based on 'users_templ'
+#-- The <name>:<template_name> is a special short syntax. It means that users1 is based on 'users_templ'.
 #-- We provide the map with key-values to substitute. 
 #-- The interesting part here, what JSON is a subset of YAML, so we need anything special to parse it
 #-- in a library
@@ -92,10 +92,131 @@ tasks1:
   - clear_user_tample
   - insert_users
 
-#-- Such data things wiil be ignored - it is up to you make the functionality of your application.
+#-- Such datathings wiil be ignored - it is up to you to make the functionality of your application.
 
 ```
 
+You can put this code to YAML-to-JSON converter [here](https://www.browserling.com/tools/yaml-to-json),
+[here](https://www.json2yaml.com/) or [here](https://codebeautify.org/yaml-to-json-xml-csv) and see what it really is.
+
+It will be something like that:
+
+```
+{
+  "old": 60,
+  "young": 20,
+  "users": "SELECT id, first_name, last_name, age, address_id FROM users\n",
+  "young_users": "&users WHERE age < &young\n",
+  "old_users": "&users WHERE age > &old\n",
+  "old_and_young_users": "&young_users\nUNION\n&old_users\n",
+  "mid_age_users": "SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))\n",
+  "users_templ": "SELECT @fields FROM users\n",
+  "users1:users_templ": {
+    "fields": "first_name, last_name"
+  },
+  "users2:users_templ": {
+    "fields": "first_name, age"
+  },
+  "tasks1": [
+    "clear_user_tample",
+    "insert_users"
+  ]
+}
+```
+
+That's exactly how the library see the file. All it does, is expansion and substitution.
+
+```clojure 
+(ns my-new-project.core
+  (:require [hicosql.core :as hico]))
+  
+(hico/run-hico "sql/test.sql")
+```
+
+The hico call above will produce such data:
+
+```edn
+#ordered/map([:old 60]
+             [:young 20]
+             [:users "SELECT id, first_name, last_name, age, address_id FROM users\n"]
+             [:young_users "SELECT id, first_name, last_name, age, address_id FROM users\n WHERE age < 20\n"]
+             [:old_users "SELECT id, first_name, last_name, age, address_id FROM users\n WHERE age > 60\n"]
+             [:old_and_young_users
+              "SELECT id, first_name, last_name, age, address_id FROM users
+                WHERE age < 20
+               
+               UNION
+               SELECT id, first_name, last_name, age, address_id FROM users
+                WHERE age > 60
+               
+               "]
+             [:mid_age_users
+              "SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( SELECT id, first_name, last_name, age, address_id FROM users
+                WHERE age < 20
+               
+               UNION
+               SELECT id, first_name, last_name, age, address_id FROM users
+                WHERE age > 60
+               
+                ))
+               "]
+             [:users_templ "SELECT @fields FROM users\n"]
+             [:users1 "SELECT first_name, last_name FROM users\n"]
+             [:users2 "SELECT first_name, age FROM users\n"]
+             [:tasks1 ["clear_user_tample" "insert_users"]])
+```
+
+'ordered-map' here is just a implementation of (ordered-map)[https://github.com/flatland/ordered].
+You can use it as an ordinary hash-map.
+
+## And, that's all?
+
+Yes. That is.
+
+## But... Isn't something missing here? How can I run my queries?
+
+It's easy. Remember, for now it's just something like template engine for SQL queries. So to, run our
+queries in more practical way, let's rewrite some queries using `:<name>` notation that will be using
+with HugSQL.
+
+```sql
+
+young: 20 
+
+users: |
+  SELECT first_name, last_name FROM users 
+  WHERE age > &young AND salary > :salary
+```
+
+Here, in our syntethic example, `young` is a constant param that rarely should be changed,
+and `salary` is what we suppose to be changeable within requests to a database.
+
+
+Clojure code:
+
+
+```clojure 
+(ns my-new-project.core
+  (:require [hicosql.core :as hico]
+            [hugsql.core :as hug]
+            [clojure.jdbc :as jdbc]))
+  
+;; You should probably use some stage management system here, but for now just 'def'
+(def queries (hico/run-hico "sql/test.sql")
+
+
+;; hugsql/sqlvec-fn is a function what returns function from SQL string,
+;; that creates sqlvec from the passed params
+(defn make-request [db-spec query-key params]
+  (jdbc/query 
+    db-spec 
+    ((hugsql/sqlvec-fn (-> queries query-key)) params))))
+
+    
+;; Now we're ready to make some requests
+(make-request your-db-spec :users {:salary 100000}))  
+
+```
 
 
 
