@@ -1,6 +1,6 @@
 # Highly Configurable SQL
 
-A Clojure library designed to manage you big SQL queries based on [YAML](https://yaml.org/).
+A Clojure library designed to manage your big SQL queries based on [YAML](https://yaml.org/).
 
 ## Installation
 
@@ -77,7 +77,7 @@ users_templ: |
 #-- So let's use our template
 #-- The <name>:<template_name> is a special short syntax. It means that users1 is based on 'users_templ'.
 #-- We provide the map with key-values to substitute. 
-#-- The interesting part here, what JSON is a subset of YAML, so we need anything special to parse it
+#-- The interesting part here, that JSON is a subset of YAML, so we need anything special to parse it
 #-- in a library
 users1:users_templ: {fields: 'first_name, last_name'}
 
@@ -92,7 +92,7 @@ tasks1:
   - clear_user_tample
   - insert_users
 
-#-- Such datathings wiil be ignored - it is up to you to make the functionality of your application.
+#-- Such datathings will be ignored - it is up to you to make the functionality of your application.
 
 ```
 
@@ -218,6 +218,11 @@ Clojure code:
 
 ```
 
+It's just a simple example of usage. In production you'd rather want to write macros to create your
+requests functions in compile-time. Or at least cache the call to `hugsql/sqlvec-fn`.
+
+
+The library is in an experimental stage, the help is appreciated.
 
 
 ## License
