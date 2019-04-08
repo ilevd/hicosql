@@ -223,7 +223,7 @@ It's just a simple example of usage. In production you'd rather want to write ma
 requests functions in compile-time. Or at least cache the call to `hugsql/sqlvec-fn`.
 
 
-The library is in an experimental stage, the help is appreciated.
+The library is in development, the help is appreciated.
 
 
 ## License
