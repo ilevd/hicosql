@@ -81,6 +81,7 @@ users_templ: |
 #-- in a library
 users1:users_templ: {fields: 'first_name, last_name'}
 
+#-- Of course you can use 'users1' and 'users2' below as base for your next queries
 users2:users_templ: {fields: 'first_name, age'}
 
 #-- So, it was the main two features.
@@ -166,7 +167,7 @@ The hico call above will produce such data:
              [:tasks1 ["clear_user_tample" "insert_users"]])
 ```
 
-'ordered-map' here is just a implementation of (ordered-map)[https://github.com/flatland/ordered].
+'ordered-map' here is just a implementation of [ordered-map](https://github.com/flatland/ordered).
 You can use it as an ordinary hash-map.
 
 ## And, that's all?
