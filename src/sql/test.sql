@@ -1,8 +1,7 @@
 old: 60
 young: 20
 
-users: |
-  SELECT id, first_name, last_name, age, address_id FROM users
+users: SELECT id, first_name, last_name, age, address_id FROM users
 
 young_users: |
   &users WHERE age < &young
@@ -15,15 +14,48 @@ old_and_young_users: |
   UNION
   &old_users
 
-mid_age_users: |
-  SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))
+f(x, y, z): |
+  SELECT :x, :y, :z FROM &users
+
+f1: |
+  SELECT &(f young 10 "20") FROM (&users)
 
 
-#-- Other example
-users_templ: |
-  SELECT @fields FROM users
+ADDRESS: |
+ 'Some City, Some Street, 1'
 
-users1:users_templ: {fields: 'first_name, last_name'}
+ADDRESS2: |
+ 'Some other City, Some other Street, 2'
 
-users2:users_templ: {fields: 'first_name, age'}
+a1: |
+  SELECT * FROM users WHERE age = :age AND salary = :salary;
 
+a2(age, salary): |
+  SELECT * FROM users WHERE age = :age AND salary = :salary AND dage > :date;
+
+a2_age_salary: |
+  SELECT * FROM users WHERE age = :age AND salary = :salary AND dage > :date;
+
+b: |
+  SELECT :age, :num FROM (&users)
+  WHERE age = :age AND salary = :salary AND :d AND :other AND addr = :addr
+
+b1: |
+  age = :age + :age
+
+c: |
+  SELECT * FROM &(b!  :age 20
+                      :d "WHERE age < 50"
+                      :other "WHERE ageee < :age"
+                      :age "NEW AGE"
+                      :salary (b1! :age 40)
+                      :num (* old young 30)
+                      :addr ADDRESS)
+  UNION ALL
+  SELECT * FROM &(a2! :age 20)
+
+#-- experimental testing
+t1: |
+  &(subs "hello world" 1 4)
+  &(clojure.string/join "," [(clojure.string/replace "hello world" #"world" "br"), "zz"])
+#--  PR = &(str "=" (cons + [1 2 3]))
