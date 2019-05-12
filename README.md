@@ -11,7 +11,7 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 - Add `__include` directive preprocessing
 
 **0.1.0**
---Base HiCoSQL features: `&<name>` expansion, templates support
+- Base HiCoSQL features: `&<name>` expansion, templates support
 
 
 ## Installation
