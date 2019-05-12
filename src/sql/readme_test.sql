@@ -1,4 +1,4 @@
-#-- Comments start with # - for YAML and -- for SQL, so it syntax highlighting would work no matter what
+#-- Comments start with # - for YAML and -- for SQL, so syntax highlighting would work no matter what
 #-- extension .yaml or .sql you choose for a file. I prefer .sql.
 
 #-- First of all, there are special engines directives, started with '__'
@@ -7,7 +7,7 @@
 __include: 'base/common.sql'
 
 
-#-- Some constants which we would use below:
+#-- Some another constants which we will use below:
 old: 60
 young: 20
 

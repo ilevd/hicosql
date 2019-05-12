@@ -49,7 +49,7 @@ This is an example HiCoSQL file with explaining comments.
 
 ```sql
 
-#-- Comments start with # - for YAML and -- for SQL, so it syntax highlighting would work no matter what
+#-- Comments start with # - for YAML and -- for SQL, so syntax highlighting would work no matter what
 #-- extension .yaml or .sql you choose for a file. I prefer .sql.
 
 #-- First of all, there are special engines directives, started with '__'
@@ -58,7 +58,7 @@ This is an example HiCoSQL file with explaining comments.
 __include: 'base/common.sql'
 
 
-#-- Some constants which we would use below:
+#-- Some another constants which we will use below:
 old: 60
 young: 20
 
@@ -88,7 +88,7 @@ mid_age_users: |
 #-- which will be replaced with provided values. Let's define some queries.
 query1: |
   SELECT * FROM (&users)
-  WHERE age = :age AND salary = :salary AND address = :addr
+  WHERE age = :age AND salary = :salary AND address = :addr AND project = :project
 
 query2: |
   SELECT max(salary) FROM users WHERE age = :age AND num = :num
@@ -97,6 +97,7 @@ query2: |
 #-- Here we use query1 and query2 as functions calls with supplied parameters.
 #-- The sign '!' on the end of query name means that we pass parameters in form:
 #-- :key1 value1 :key2 value2 ... etc.
+#-- We don't pass :project value because we suppose to use it from Clojure code.
 query3: |
   SELECT * FROM &(query1! :age 20
                           :salary (query2! :age 40)
@@ -120,6 +121,12 @@ q3: |
   SELECT some_sql FROM &(q1! :a "SQL expression" :b "'string with quotes'" :c 10 :d young)
 
 ```
+
+As you can see the library also supports some simple operations like: *, /, +, -, and other Clojure functions.
+Such calls will be executed only once.
+Notice, for now it resolve Clojure functions only if it is on the first position in the list, just
+after the open bracket `(`.
+
 
 You can put this code to YAML-to-JSON converter [here](https://www.browserling.com/tools/yaml-to-json),
 [here](https://www.json2yaml.com/) or [here](https://codebeautify.org/yaml-to-json-xml-csv) and see what it really is.
