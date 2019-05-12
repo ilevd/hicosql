@@ -6,13 +6,12 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 
 **0.2.0**
 - Reworking `&` expansion to evaluate complex expression
-SQL queries as functions support
-Remove templates support
-Add `__include` directive preprocessing
+- SQL queries as functions support
+- Remove templates support
+- Add `__include` directive preprocessing
 
 **0.1.0**
-
-Base HiCoSQL features: `&<name>` expansion, templates support
+--Base HiCoSQL features: `&<name>` expansion, templates support
 
 
 ## Installation
