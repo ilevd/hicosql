@@ -228,7 +228,7 @@ Here is how you can use it with your database:
             [clojure.jdbc :as jdbc]))
   
 
-(def queries (hico/run-hico "sql/test.sql")
+(def queries (hico/run-file "sql/test.sql")
 
 
 ;; hugsql/sqlvec-fn is a function what returns function from SQL string,
