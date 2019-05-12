@@ -5,7 +5,7 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 ## Version History
 
 **0.2.0**
-- Reworking `&` expansion to evaluate complex expression
+- Reworking `&` expansion to evaluate complex expressions
 - SQL queries as functions support
 - Remove templates support
 - Add `__include` directive preprocessing
@@ -124,7 +124,7 @@ q3: |
 
 As you can see the library also supports some simple operations like: *, /, +, -, and other Clojure functions.
 Such calls will be executed only once.
-Notice, for now it resolve Clojure functions only if it is on the first position in the list, just
+Notice, for now it resolves Clojure functions only if it is on the first position in the list, just
 after the open bracket `(`.
 
 
@@ -217,7 +217,7 @@ The hico call above will produce such data:
 `ordered-map` here is just a implementation of [ordered-map](https://github.com/flatland/ordered).
 You can use it as an ordinary hash-map.
 
-Here is how you can use it with you database:
+Here is how you can use it with your database:
 
 
 ```clojure 
