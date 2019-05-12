@@ -1,5 +1,6 @@
 (ns hicosql.substitution
-  (:require [hicosql.evaluation :as hico-eval]
+  (:require [hicosql.preprocessors :as preprocessors]
+            [hicosql.evaluation :as hico-eval]
             [hicosql.utils :refer :all]
             [hicosql.parser :as parser]
             [hicosql.expression :as expr]
@@ -49,8 +50,10 @@
 
 (defn substitute-all
   "Parses and creates functions, makes substitutions and expansions"
-  [data]
+  [data path]
   (->> data
+       ;; preprocessors
+       (preprocessors/preprocess path)
        ;; main queries evaluation
        (reduce (fn [res [key val]]
                  (cond

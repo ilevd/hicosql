@@ -1,5 +1,10 @@
+__include: 'base/common.sql'
+
 old: 60
 young: 20
+
+include_test_query: SELECT * FROM d WHERE a = &const1 AND age = &old
+
 
 users: SELECT id, first_name, last_name, age, address_id FROM users
 
