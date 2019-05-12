@@ -2,6 +2,19 @@
 
 A Clojure library designed to manage your big SQL queries based on [YAML](https://yaml.org/).
 
+## Version History
+
+**0.2.0**
+- Reworking `&` expansion to evaluate complex expression
+SQL queries as functions support
+Remove templates support
+Add `__include` directive preprocessing
+
+**0.1.0**
+
+Base HiCoSQL features: `&<name>` expansion, templates support
+
+
 ## Installation
 
 ### Leiningen
@@ -12,27 +25,27 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 1. Easy to read and write
 2. Highly configurable
 3. Composable queries
-4. Library itself is pretty simple 
 5. Designed to work with big complex SQL queries
-6. SQL as configs
+6. SQL as data
 
 ### Why do I need it?
 
 There are a lot of different SQL libraries. HugSQL, HoneySQL, YeSQL...
 
-But unfourtanetly they provide good query composability only on Clojure level.
+But unfortunately they provide good query composability only on Clojure level.
 
 Then SQL code base is large, and you want to provide great readability, for example, for DBA's who
 don't know Clojure you better need something like template language for your SQL than Clojure-like
 solutions.  
 
-So, the idea of this library is to manage SQL like configurations.
+So, the idea of this library is to manage SQL like configurations. It will help you if your queries
+are really big, and they consist of repeatable parts.
 
 Each configuration file for HiCoSQL is a YAML file with keys and values that library expand.
 
-So let's get started.
+For now the library supposed to be used with HugSQL.
 
-Suppose we have the next file:
+This is an example HiCoSQL file with explaining comments.
 
 
 ```sql
@@ -40,10 +53,15 @@ Suppose we have the next file:
 #-- Comments start with # - for YAML and -- for SQL, so it syntax highlighting would work no matter what
 #-- extension .yaml or .sql you choose for a file. I prefer .sql.
 
-#-- Some consts which we would use below:
+#-- First of all, there are special engines directives, started with '__'
+#-- This one includes the content of a file in current file.
+#-- This is useful then you have some constants or queries that you use in different files
+__include: 'base/common.sql'
+
+
+#-- Some constants which we would use below:
 old: 60
 young: 20
-
 
 #-- Let's define our first query:
 users: |
@@ -63,37 +81,44 @@ old_and_young_users: |
   UNION
   &old_users
 
-#-- Each query can use all queries (better say values), defined above
+#-- Each query can use all queries defined above
 mid_age_users: |
   SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))
 
-#-- It was the first main feature of HiCoSQL - substitution for &<name>. 
-#-- Now let's use the second: templates
-#-- Here we define our first template, which use @<name> - the place there the engine inserts
-#-- provided value
-users_templ: |
-  SELECT @fields FROM users
+#-- In the real life we need to provide some values from Clojure code, for that we use :<name> strings
+#-- which will be replaced with provided values. Let's define some queries.
+query1: |
+  SELECT * FROM (&users)
+  WHERE age = :age AND salary = :salary AND address = :addr
 
-#-- So let's use our template
-#-- The <name>:<template_name> is a special short syntax. It means that users1 is based on 'users_templ'.
-#-- We provide the map with key-values to substitute. 
-#-- The interesting part here, that JSON is a subset of YAML, so we need anything special to parse it
-#-- in a library
-users1:users_templ: {fields: 'first_name, last_name'}
+query2: |
+  SELECT max(salary) FROM users WHERE age = :age AND num = :num
 
-#-- Of course you can use 'users1' and 'users2' below as base for your next queries
-users2:users_templ: {fields: 'first_name, age'}
+#-- We can replace some of these parameters in next queries.
+#-- Here we use query1 and query2 as functions calls with supplied parameters.
+#-- The sign '!' on the end of query name means that we pass parameters in form:
+#-- :key1 value1 :key2 value2 ... etc.
+query3: |
+  SELECT * FROM &(query1! :age 20
+                          :salary (query2! :age 40)
+                          :num (* old young 30)
+                          :addr "'Some address, Street 1'")
+  UNION ALL
+  SELECT * FROM some_other_table WHERE a_lot_of_conditions
 
-#-- So, it was the main two features.
-#-- But, because it essentialy a config file, you can write any other data, which you can use later in your 
-#-- Clojure code.
-#-- Suppose, you want to describe some transactions or tasks:
+#-- We can also use queries calls without additional keys before arguments,
+#-- but for that we need to define query in function form to describe arguments order.
+#-- Suppose we have:
+q1(a, b, c, d): |
+  SELECT :d, :c, :b, :a FROM some_table
 
-tasks1: 
-  - clear_user_tample
-  - insert_users
+#-- Now we can use it without additional keys. And in that case we don't use '!' at the end. Just 'q1'
+q2: |
+  SELECT some_sql FROM &(q1 "SQL expression" "'string with quotes'" 10 young)
 
-#-- Such datathings will be ignored - it is up to you to make the functionality of your application.
+#-- But of course, we can also use it in full form:
+q3: |
+  SELECT some_sql FROM &(q1! :a "SQL expression" :b "'string with quotes'" :c 10 :d young)
 
 ```
 
@@ -104,40 +129,41 @@ It will be something like that:
 
 ```
 {
-  "old": 60,
-  "young": 20,
-  "users": "SELECT id, first_name, last_name, age, address_id FROM users\n",
-  "young_users": "&users WHERE age < &young\n",
-  "old_users": "&users WHERE age > &old\n",
-  "old_and_young_users": "&young_users\nUNION\n&old_users\n",
-  "mid_age_users": "SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))\n",
-  "users_templ": "SELECT @fields FROM users\n",
-  "users1:users_templ": {
-    "fields": "first_name, last_name"
-  },
-  "users2:users_templ": {
-    "fields": "first_name, age"
-  },
-  "tasks1": [
-    "clear_user_tample",
-    "insert_users"
-  ]
+	"__include": "base/common.sql",
+	"old": 60,
+	"young": 20,
+	"users": "SELECT id, first_name, last_name, age, address_id FROM users\n",
+	"young_users": "&users WHERE age < &young\n",
+	"old_users": "&users WHERE age > &old\n",
+	"old_and_young_users": "&young_users\nUNION\n&old_users\n",
+	"mid_age_users": "SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( &old_and_young_users ))\n",
+	"query1": "SELECT * FROM (&users)\nWHERE age = :age AND salary = :salary AND address = :addr\n",
+	"query2": "SELECT max(salary) FROM users WHERE age = :age AND num = :num\n",
+	"query3": "SELECT * FROM &(query1! :age 20\n                        :salary (query2! :age 40)\n                        :num (* old young 30)\n                        :addr \"'Some address, Street 1'\")\nUNION ALL\nSELECT * FROM some_other_table WHERE a_lot_of_conditions\n",
+	"q1(a, b, c, d)": "SELECT :d, :c, :b, :a FROM some_table\n",
+	"q2": "SELECT some_sql FROM &(q1 \"SQL expression\" \"'string with quotes'\" 10 young)\n",
+	"q3": "SELECT some_sql FROM &(q1! :a \"SQL expression\" :b \"'string with quotes'\" :c 10 :d young)\n"
 }
 ```
 
 That's exactly how the library see the file. All it does, is expansion and substitution.
 
+Now let's see how to use it from Clojure.
+
 ```clojure 
 (ns my-new-project.core
   (:require [hicosql.core :as hico]))
   
-(hico/run-hico "sql/test.sql")
+(hico/run-file "sql/test.sql")
 ```
 
 The hico call above will produce such data:
 
 ```edn
-#ordered/map([:old 60]
+#ordered/map([:const1 "'Common constant string. Notice, that it is in single quotes, so...'\n"]
+             [:const2 "'... it will be inserted with them, like a string, not SQL expression'\n"]
+             [:some_common_query "SELECT * FROM projects"]
+             [:old 60]
              [:young 20]
              [:users "SELECT id, first_name, last_name, age, address_id FROM users\n"]
              [:young_users "SELECT id, first_name, last_name, age, address_id FROM users\n WHERE age < 20\n"]
@@ -145,55 +171,47 @@ The hico call above will produce such data:
              [:old_and_young_users
               "SELECT id, first_name, last_name, age, address_id FROM users
                 WHERE age < 20
-               
+
                UNION
                SELECT id, first_name, last_name, age, address_id FROM users
                 WHERE age > 60
-               
+
                "]
              [:mid_age_users
               "SELECT * FROM users WHERE id NOT IN (SELECT id FROM ( SELECT id, first_name, last_name, age, address_id FROM users
                 WHERE age < 20
-               
+
                UNION
                SELECT id, first_name, last_name, age, address_id FROM users
                 WHERE age > 60
-               
+
                 ))
                "]
-             [:users_templ "SELECT @fields FROM users\n"]
-             [:users1 "SELECT first_name, last_name FROM users\n"]
-             [:users2 "SELECT first_name, age FROM users\n"]
-             [:tasks1 ["clear_user_tample" "insert_users"]])
+             [:query1
+              "SELECT * FROM (SELECT id, first_name, last_name, age, address_id FROM users
+               )
+               WHERE age = :age AND salary = :salary AND address = :addr
+               "]
+             [:query2 "SELECT max(salary) FROM users WHERE age = :age AND num = :num\n"]
+             [:query3
+              "SELECT * FROM SELECT * FROM (SELECT id, first_name, last_name, age, address_id FROM users
+               )
+               WHERE age = 20 AND salary = SELECT max(salary) FROM users WHERE age = 40 AND num = 36000
+                AND address = 'Some address, Street 1'
+
+               UNION ALL
+               SELECT * FROM some_other_table WHERE a_lot_of_conditions
+               "]
+             [:q1 "SELECT :d, :c, :b, :a FROM some_table\n"]
+             [:q2 "SELECT some_sql FROM SELECT 20, 10, 'string with quotes', SQL expression FROM some_table\n\n"]
+             [:q3 "SELECT some_sql FROM SELECT 20, 10, 'string with quotes', SQL expression FROM some_table\n\n"])
+
 ```
 
 `ordered-map` here is just a implementation of [ordered-map](https://github.com/flatland/ordered).
 You can use it as an ordinary hash-map.
 
-## And, that's all?
-
-Yes. That is.
-
-## But... Isn't something missing here? How can I run my queries?
-
-It's easy. Remember, for now it's just something like template engine for SQL queries. So, to run our
-queries in more practical way, let's rewrite some queries using `:<name>` notation that will be using
-with HugSQL.
-
-```sql
-
-young: 20 
-
-users: |
-  SELECT first_name, last_name FROM users 
-  WHERE age > &young AND salary > :salary
-```
-
-Here, in our syntethic example, `young` is a constant param that rarely should be changed,
-and `salary` is what we suppose to be changeable within requests to a database.
-
-
-Clojure code:
+Here is how you can use it with you database:
 
 
 ```clojure 
@@ -202,7 +220,7 @@ Clojure code:
             [hugsql.core :as hug]
             [clojure.jdbc :as jdbc]))
   
-;; You should probably use some stage management system here, but for now just 'def'
+
 (def queries (hico/run-hico "sql/test.sql")
 
 
@@ -215,15 +233,22 @@ Clojure code:
 
     
 ;; Now we're ready to make some requests
-(make-request your-db-spec :users {:salary 100000}))  
+(make-request your-db-spec :users {}))
+
+(make-request your-db-spec :query3 {:project "Some cool project"}))
+
+(make-request your-db-spec :q1 {:a 1 :b 2 :c "C" :d "D"}))
+
+(make-request your-db-spec :q3 {}))
 
 ```
 
 It's just a simple example of usage. In production you'd rather want to write macros to create your
-requests functions in compile-time. Or at least cache the call to `hugsql/sqlvec-fn`.
+requests functions in compile-time.
 
+I suppose you have understood the main idea of the library.
 
-The library is in development, the help is appreciated.
+Feedback is appreciated.
 
 
 ## License
