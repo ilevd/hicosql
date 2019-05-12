@@ -40,6 +40,7 @@ solutions.
 So, the idea of this library is to manage SQL like configurations. It will help you if your queries
 are really big, and they consist of repeatable parts.
 
+### Usage
 Each configuration file for HiCoSQL is a YAML file with keys and values that library expand.
 
 For now the library supposed to be used with HugSQL.
