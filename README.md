@@ -1,6 +1,6 @@
 # Highly Configurable SQL
 
-A Clojure library designed to manage your big SQL queries based on [YAML](https://yaml.org/).
+A Clojure library designed to manage your big SQL queries based on [YAML](https://yaml.org/).    
 
 ## Version History
 
@@ -129,7 +129,7 @@ Notice, for now it resolves Clojure functions only if it is on the first positio
 after the open bracket `(`.
 
 
-You can put this code to YAML-to-JSON converter [here](https://www.browserling.com/tools/yaml-to-json),
+You can put this code to YAML-to-JSON converter [here](https://yamlonline.com), [here](https://www.browserling.com/tools/yaml-to-json),
 [here](https://www.json2yaml.com/) or [here](https://codebeautify.org/yaml-to-json-xml-csv) and see what it really is.
 
 It will be something like that:
