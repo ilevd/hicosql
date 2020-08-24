@@ -17,9 +17,16 @@
 
 (defn include
   "Read included file and it values to main values"
-  [path m include-path]
-  (let [include-data (utils/read-yaml (relative-path path include-path))]
-    (merge m include-data)))
+  [path result include-path]
+  (if (string? include-path)
+    (let [include-data (utils/read-yaml (relative-path path include-path))]
+      (merge result include-data))
+    ;;  if it's vector, include each file alternately
+    (reduce
+      (fn [res item]
+        (include path res item ))
+      result
+      include-path)))
 
 
 (defn preprocess

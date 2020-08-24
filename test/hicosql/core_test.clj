@@ -2,6 +2,11 @@
   (:require [clojure.test :refer :all]
             [hicosql.core :refer :all]))
 
-(deftest a-test
+
+(deftest run-file-test
   (testing "FIXME, I fail."
-    (is (= 1 1))))
+    (is (= (run-file "../test/data/main.sql"))
+        (assoc (flatland.ordered.map/ordered-map)
+          :a 10
+          :b 20
+          :main_req "hello world"))))
