@@ -4,6 +4,9 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 
 ## Version History
 
+**0.2.1**
+- `__include` now can import several files: `__include: ['1.sql', '2.sql']`
+
 **0.2.0**
 - Reworking `&` expansion to evaluate complex expressions
 - SQL queries as functions support
