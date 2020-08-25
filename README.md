@@ -36,15 +36,15 @@ There are a lot of different SQL libraries. HugSQL, HoneySQL, YeSQL...
 
 But unfortunately they provide good query composability only on Clojure level.
 
-Then SQL code base is large, and you want to provide great readability, for example, for DBA's who
-don't know Clojure you better need something like template language for your SQL than Clojure-like
-solutions.  
+When SQL code base is large, and you want to provide great readability, for example, for DBA's who
+doesn't know Clojure you better need something like template engine for your SQL than Clojure-like
+solution.  
 
-So, the idea of this library is to manage SQL like configurations. It will help you if your queries
+So, the idea of this library is to manage SQL like configuration. It will help you if your queries
 are really big, and they consist of repeatable parts.
 
 ### Usage
-Each configuration file for HiCoSQL is a YAML file with keys and values that library expand.
+Each configuration file for HiCoSQL is a YAML file with keys and values that library expands.
 
 For now the library supposed to be used with HugSQL.
 
@@ -53,12 +53,12 @@ This is an example HiCoSQL file with explaining comments.
 
 ```sql
 
-#-- Comments start with # - for YAML and -- for SQL, so syntax highlighting would work no matter what
+#-- Comments begin with # - for YAML and -- for SQL, so syntax highlighting would work no matter what
 #-- extension .yaml or .sql you choose for a file. I prefer .sql.
 
 #-- First of all, there are special engines directives, started with '__'
-#-- This one includes the content of a file in current file.
-#-- This is useful then you have some constants or queries that you use in different files
+#-- This one includes the content of a file to current file.
+#-- This is useful when you have some constants or queries that you use in different files
 #-- You can use: __include: ['one.sql', 'second.sql'] to include several SQL files
 __include: 'base/common.sql'
 
@@ -71,7 +71,7 @@ young: 20
 users: |
   SELECT id, first_name, last_name, age, address_id FROM users
 
-#-- Now we can use it for defining another query. Here we use 'young' which will be expand to 20.
+#-- Now we can use it for defining another query. Here we use 'young' which will be expanded to 20.
 young_users: |
   &users WHERE age < &young
 
@@ -100,7 +100,7 @@ query2: |
 
 #-- We can replace some of these parameters in next queries.
 #-- Here we use query1 and query2 as functions calls with supplied parameters.
-#-- The sign '!' on the end of query name means that we pass parameters in form:
+#-- The sign '!' on the end of the query name means that we pass parameters in form:
 #-- :key1 value1 :key2 value2 ... etc.
 #-- We don't pass :project value because we suppose to use it from Clojure code.
 query3: |
@@ -111,7 +111,7 @@ query3: |
   UNION ALL
   SELECT * FROM some_other_table WHERE a_lot_of_conditions
 
-#-- We can also use queries calls without additional keys before arguments,
+#-- We can also use query calls without additional keys before arguments,
 #-- but for that we need to define query in function form to describe arguments order.
 #-- Suppose we have:
 q1(a, b, c, d): |
@@ -157,7 +157,7 @@ It will be something like that:
 }
 ```
 
-That's exactly how the library see the file. All it does, is expansion and substitution.
+That's exactly how the library sees the file. All it does, is expansion and substitution.
 
 Now let's see how to use it from Clojure.
 
@@ -168,7 +168,7 @@ Now let's see how to use it from Clojure.
 (hico/run-file "sql/test.sql")
 ```
 
-The hico call above will produce such data:
+The HiCo call above will produce such data:
 
 ```edn
 #ordered/map([:const1 "'Common constant string. Notice, that it is in single quotes, so...'\n"]
@@ -266,4 +266,4 @@ Feedback is appreciated.
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
 
-ilevd © 2019
+ilevd © 2019-2020
