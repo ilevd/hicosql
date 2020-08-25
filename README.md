@@ -56,6 +56,7 @@ This is an example HiCoSQL file with explaining comments.
 #-- First of all, there are special engines directives, started with '__'
 #-- This one includes the content of a file in current file.
 #-- This is useful then you have some constants or queries that you use in different files
+#-- You can use: __include: ['one.sql', 'second.sql'] to include several SQL files
 __include: 'base/common.sql'
 
 
