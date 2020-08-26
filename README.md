@@ -5,7 +5,7 @@ A Clojure library designed to manage your big SQL queries based on [YAML](https:
 ## Version History
 
 **0.2.2**
-- Recursive `__include` support`
+- Recursive `__include` support
 
 **0.2.1**
 - `__include` now can import several files: `__include: ['1.sql', '2.sql']`
