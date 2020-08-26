@@ -15,12 +15,17 @@
     path))
 
 
+(declare preprocess)
+
+
 (defn include
   "Read included file and it values to main values"
   [path result include-path]
   (if (string? include-path)
-    (let [include-data (utils/read-yaml (relative-path path include-path))]
-      (merge result include-data))
+    (let [full-include-path (relative-path path include-path)
+          include-data (utils/read-yaml full-include-path )
+          full-include-data (preprocess full-include-path include-data)]
+      (merge result full-include-data))
     ;;  if it's vector, include each file alternately
     (reduce
       (fn [res item]
