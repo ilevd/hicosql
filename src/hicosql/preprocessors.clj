@@ -2,7 +2,17 @@
   (:require [hicosql.utils :as utils]
             [flatland.ordered.map :refer [ordered-map]]
             [clojure.string :as string])
-  (:import (java.io File)))
+  (:import (java.io File)
+           (java.util.regex Pattern)))
+
+
+;; Support Windows an Unix separator
+(def separator-pattern
+  (re-pattern (str (Pattern/quote "/")
+                   "|"
+                   (Pattern/quote "\\")
+                   "|"
+                   (Pattern/quote File/separator))))
 
 
 (defn relative-path
@@ -10,8 +20,8 @@
   \"sql/test.sql\", \"base/common.sql\" => \"sql/base/common.sql\"
   "
   [source-path path]
-  (let [parts (string/split source-path (re-pattern File/separator))
-        path (string/join File/separator (conj (vec (butlast parts)) path))]
+  (let [parts (string/split source-path separator-pattern)
+        path  (string/join File/separator (conj (vec (butlast parts)) path))]
     path))
 
 
@@ -23,13 +33,13 @@
   [path result include-path]
   (if (string? include-path)
     (let [full-include-path (relative-path path include-path)
-          include-data (utils/read-yaml full-include-path )
+          include-data      (utils/read-yaml full-include-path)
           full-include-data (preprocess full-include-path include-data)]
       (merge result full-include-data))
     ;;  if it's vector, include each file alternately
     (reduce
       (fn [res item]
-        (include path res item ))
+        (include path res item))
       result
       include-path)))
 
